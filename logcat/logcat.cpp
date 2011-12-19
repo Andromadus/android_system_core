@@ -296,6 +296,11 @@ static void readLogLines(log_device_t* devices)
                         fprintf(stderr, "read: Unexpected EOF!\n");
                         exit(EXIT_FAILURE);
                     }
+                    else if (entry->entry.len != ret - sizeof(struct logger_entry)) {
+                        fprintf(stderr, "read: unexpected length. Expected %d, got %d\n",
+                                entry->entry.len, ret - sizeof(struct logger_entry));
+                        exit(EXIT_FAILURE);
+                    }
 
                     entry->entry.msg[entry->entry.len] = '\0';
 
@@ -405,8 +410,7 @@ static void show_help(const char *cmd)
                     "  -b <buffer>     Request alternate ring buffer, 'main', 'system', 'radio'\n"
                     "                  or 'events'. Multiple -b parameters are allowed and the\n"
                     "                  results are interleaved. The default is -b main -b system.\n"
-                    "  -B              output the log in binary\n"
-                    "  -C              colored output");
+                    "  -B              output the log in binary");
 
 
     fprintf(stderr,"\nfilterspecs are a series of \n"
@@ -448,11 +452,6 @@ static int setLogFormat(const char * formatString)
     return 0;
 }
 
-static void setColoredOutput()
-{
-    android_log_setColoredOutput(g_logformat);
-}
-
 extern "C" void logprint_run_tests(void);
 
 int main(int argc, char **argv)
@@ -482,7 +481,7 @@ int main(int argc, char **argv)
     for (;;) {
         int ret;
 
-        ret = getopt(argc, argv, "cdt:gsQf:r::n:v:b:BC");
+        ret = getopt(argc, argv, "cdt:gsQf:r::n:v:b:B");
 
         if (ret < 0) {
             break;
@@ -510,10 +509,6 @@ int main(int argc, char **argv)
 
             case 'g':
                 getLogSize = 1;
-            break;
-
-            case 'C':
-                setColoredOutput();
             break;
 
             case 'b': {

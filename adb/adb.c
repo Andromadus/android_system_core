@@ -874,9 +874,7 @@ int adb_main(int is_daemon, int server_port)
         property_get("ro.secure", value, "1");
         if (strcmp(value, "1") == 0) {
             // don't run as root if ro.secure is set...
-#ifndef BOARD_ALWAYS_INSECURE
             secure = 1;
-#endif
 
             // ... except we allow running as root in userdebug builds if the
             // service.adb.root property has been set by the "adb root" command
@@ -909,9 +907,11 @@ int adb_main(int is_daemon, int server_port)
         ** AID_NET_BT and AID_NET_BT_ADMIN to diagnose bluetooth (hcidump)
         ** AID_SDCARD_RW to allow writing to the SD card
         ** AID_MOUNT to allow unmounting the SD card before rebooting
+        ** AID_NET_BW_STATS to read out qtaguid statistics
         */
         gid_t groups[] = { AID_ADB, AID_LOG, AID_INPUT, AID_INET, AID_GRAPHICS,
-                           AID_NET_BT, AID_NET_BT_ADMIN, AID_SDCARD_RW, AID_MOUNT };
+                           AID_NET_BT, AID_NET_BT_ADMIN, AID_SDCARD_RW, AID_MOUNT,
+                           AID_NET_BW_STATS };
         if (setgroups(sizeof(groups)/sizeof(groups[0]), groups) != 0) {
             exit(1);
         }
